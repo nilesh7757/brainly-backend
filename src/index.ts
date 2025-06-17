@@ -64,13 +64,14 @@ const signupSchema = z.object({
 })
 
 // Signup
-app.post("/api/v1/signup", async (req: Request, res: Response) => {
+app.post("/api/v1/signup", async (req: Request, res: Response): Promise<void> => {
   try {
     const result = signupSchema.safeParse(req.body)
     console.log("Signup attempt:", result)
 
     if (!result.success) {
-      return res.status(400).json({ message: "Invalid Inputs", errors: result.error.errors })
+      res.status(400).json({ message: "Invalid Inputs", errors: result.error.errors })
+      return
     }
 
     const { username, password } = result.data
@@ -92,11 +93,12 @@ app.post("/api/v1/signup", async (req: Request, res: Response) => {
 })
 
 // Signin
-app.post("/api/v1/signin", async (req: Request, res: Response) => {
+app.post("/api/v1/signin", async (req: Request, res: Response): Promise<void> => {
   try {
     const result = signupSchema.safeParse(req.body)
     if (!result.success) {
-      return res.status(400).json({ message: "Invalid Inputs" })
+      res.status(400).json({ message: "Invalid Inputs" })
+      return
     }
 
     const { username, password } = result.data
@@ -115,7 +117,7 @@ app.post("/api/v1/signin", async (req: Request, res: Response) => {
 })
 
 // Add content
-app.post("/api/v1/content", userMiddleware, async (req: Request, res: Response) => {
+app.post("/api/v1/content", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { title, link, type, tags = [] } = req.body
     //@ts-ignore
@@ -139,7 +141,7 @@ app.post("/api/v1/content", userMiddleware, async (req: Request, res: Response) 
 })
 
 // Get content
-app.get("/api/v1/content", userMiddleware, async (req: Request, res: Response) => {
+app.get("/api/v1/content", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     //@ts-ignore
     const userId = req.userId
@@ -154,7 +156,7 @@ app.get("/api/v1/content", userMiddleware, async (req: Request, res: Response) =
 })
 
 // Delete content
-app.delete("/api/v1/content", userMiddleware, async (req: Request, res: Response) => {
+app.delete("/api/v1/content", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { contentId } = req.body
     console.log("Deleting content:", contentId)
@@ -163,13 +165,15 @@ app.delete("/api/v1/content", userMiddleware, async (req: Request, res: Response
     const userId = req.userId
 
     if (!contentId) {
-      return res.status(400).json({ error: "Content ID is required" })
+      res.status(400).json({ error: "Content ID is required" })
+      return
     }
 
     const result = await ContentModel.deleteOne({ _id: contentId, userId })
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ error: "Content not found or not authorized" })
+      res.status(404).json({ error: "Content not found or not authorized" })
+      return
     }
 
     res.json({ message: "Content deleted successfully" })
@@ -180,7 +184,7 @@ app.delete("/api/v1/content", userMiddleware, async (req: Request, res: Response
 })
 
 // Share endpoints
-app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Response) => {
+app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     //@ts-ignore
     const userId = req.userId
@@ -188,15 +192,17 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     const user = await UserModel.findById(userId)
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" })
+      res.status(404).json({ message: "User not found" })
+      return
     }
 
     // @ts-ignore
     if (user.shareId) {
       // @ts-ignore
-      return res.json({
+      res.json({
         shareLink: `${process.env.VERCEL_URL || "http://localhost:3000"}/api/v1/brain/${user.shareId}`,
       })
+      return
     }
 
     const shareId = generateShareId()
@@ -211,14 +217,15 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
   }
 })
 
-app.get("/api/v1/brain/:shareId", async (req: Request, res: Response) => {
+app.get("/api/v1/brain/:shareId", async (req: Request, res: Response): Promise<void> => {
   try {
     const { shareId } = req.params
 
     const user = await UserModel.findOne({ shareId })
 
     if (!user) {
-      return res.status(404).json({ message: "Invalid share link" })
+      res.status(404).json({ message: "Invalid share link" })
+      return
     }
 
     const content = await ContentModel.find({ userId: user._id })
