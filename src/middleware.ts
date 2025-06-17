@@ -2,14 +2,15 @@ import type { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import { JWT_PASSWORD } from "./config"
 
-export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const userMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const header = req.headers["authorization"]
 
     if (!header) {
-      return res.status(403).json({
+      res.status(403).json({
         message: "Authorization header missing",
       })
+      return
     }
 
     const decoded = jwt.verify(header, JWT_PASSWORD) as { id: string }
