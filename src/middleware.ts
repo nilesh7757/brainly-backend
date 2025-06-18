@@ -5,6 +5,7 @@ import { JWT_PASSWORD } from "./config"
 export const userMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const header = req.headers["authorization"]
+    console.log(header);
     if (!header) {
       res.status(403).json({
         message: "Authorization header missing",

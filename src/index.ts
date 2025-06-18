@@ -64,6 +64,10 @@ const signupSchema = z.object({
   email: z.string().email(),
 })
 
+const signinSchema = z.object({
+  username: z.string().min(3, "Username is short"),
+  password: z.string().min(6, "Password is short"),
+})
 const client = new OAuth2Client("52074276999-hivborjh21pho32erp3jg6l7es1f3qc5.apps.googleusercontent.com");
 
 app.post('/api/v1/google-signin', async (req: Request, res: Response) => {
@@ -164,7 +168,7 @@ app.post("/api/v1/signup", async (req: Request, res: Response): Promise<void> =>
 // Signin
 app.post("/api/v1/signin", async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = signupSchema.safeParse(req.body)
+    const result = signinSchema.safeParse(req.body)
     if (!result.success) {
       res.status(400).json({ message: "Invalid Inputs" })
       return
@@ -262,7 +266,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
   try {
     //@ts-ignore
     const userId = req.userId
-
+    console.log(userId);
     const user = await UserModel.findById(userId)
 
     if (!user) {
@@ -274,7 +278,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     if (user.shareId) {
       // @ts-ignore
       res.json({
-        shareLink: `${process.env.VERCEL_URL || "http://localhost:3000"}/api/v1/brain/${user.shareId}`,
+        shareLink: `${process.env.VERCEL_URL || "http://localhost:5173"}/share/${user.shareId}`,
       })
       return
     }
@@ -283,8 +287,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     // @ts-ignore
     user.shareId = shareId
     await user.save()
-
-    res.json({ shareLink: `${process.env.VERCEL_URL || "http://localhost:3000"}/api/v1/brain/${shareId}` })
+    res.json({ shareLink: `${process.env.VERCEL_URL || "http://localhost:3000"}/share/${shareId}` })
   } catch (err) {
     console.error("Share error:", err)
     res.status(500).json({ message: "Failed to create share link" })
