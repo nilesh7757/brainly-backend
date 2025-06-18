@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { z } from "zod"
 import { ContentModel, UserModel } from "./db"
-import { GOOGLE_CLIENT_ID, JWT_PASSWORD, MONGO_URI } from "./config"
+import { FRONTEND_URL, GOOGLE_CLIENT_ID, JWT_PASSWORD, MONGO_URI } from "./config"
 import { userMiddleware } from "./middleware"
 import crypto from "crypto"
 import cors from "cors"
@@ -281,7 +281,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     if (user.shareId) {
       // @ts-ignore
       res.json({
-        shareLink: `${process.env.VERCEL_URL || "http://localhost:5173"}/share/${user.shareId}`,
+        shareLink: `${FRONTEND_URL || "http://localhost:5173"}/share/${user.shareId}`,
       })
       return
     }
@@ -290,7 +290,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     // @ts-ignore
     user.shareId = shareId
     await user.save()
-    res.json({ shareLink: `${process.env.VERCEL_URL || "http://localhost:5173"}/share/${shareId}` })
+    res.json({ shareLink: `${FRONTEND_URL || "http://localhost:5173"}/share/${shareId}` })
   } catch (err) {
     console.error("Share error:", err)
     res.status(500).json({ message: "Failed to create share link" })
