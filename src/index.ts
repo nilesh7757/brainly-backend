@@ -69,7 +69,9 @@ const client = new OAuth2Client("52074276999-hivborjh21pho32erp3jg6l7es1f3qc5.ap
 app.post('/api/v1/google-signin', async (req: Request, res: Response) => {
   console.log('Request body:', req.body);
   console.log('Request headers:', req.headers);
-  
+  console.log('📥 Hit /api/v1/google-signin');
+  console.log('Body:', req.body);
+  console.log('Headers:', req.headers);
   const { token } = req.body;
   console.log('Extracted token:', token);
 
