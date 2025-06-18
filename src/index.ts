@@ -1,3 +1,6 @@
+import dotenv from "dotenv"
+dotenv.config()
+
 import express, { type Request, type Response } from "express"
 import mongoose from "mongoose"
 import jwt from "jsonwebtoken"
@@ -297,15 +300,27 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
 app.get("/api/v1/brain/:shareId", async (req: Request, res: Response): Promise<void> => {
   try {
     const { shareId } = req.params
-    console.log("shareID", shareId);
-    const user = await UserModel.findOne({ shareId })
+    console.log("Looking for shareId:", shareId);
+    console.log("shareId type:", typeof shareId);
+    
+    // Try to find the user with this shareId
+    const user = await UserModel.findOne({ shareId: shareId })
+    console.log("Found user:", user);
+    console.log("User exists check:", !!user);
+    console.log("User type:", typeof user);
 
     if (!user) {
+      console.log("No user found with shareId:", shareId);
+      // Let's also check what shareIds exist in the database
+      const allUsers = await UserModel.find({}, { shareId: 1, username: 1 });
+      console.log("All users with shareIds:", allUsers);
       res.status(404).json({ message: "Invalid share link" })
       return
     }
-    console.log(user);
+    
+    console.log("User found, proceeding to get content");
     const content = await ContentModel.find({ userId: user._id })
+    console.log("Found content count:", content.length);
 
     res.json({
       username: user.username,
