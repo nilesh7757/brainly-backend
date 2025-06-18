@@ -5,7 +5,6 @@ import { JWT_PASSWORD } from "./config"
 export const userMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const header = req.headers["authorization"]
-
     if (!header) {
       res.status(403).json({
         message: "Authorization header missing",
@@ -14,7 +13,6 @@ export const userMiddleware = (req: Request, res: Response, next: NextFunction):
     }
 
     const decoded = jwt.verify(header, JWT_PASSWORD) as { id: string }
-
     if (decoded && decoded.id) {
       // @ts-ignore
       req.userId = decoded.id

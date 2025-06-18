@@ -4,11 +4,11 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { z } from "zod"
 import { ContentModel, UserModel } from "./db"
-import { JWT_PASSWORD, MONGO_URI } from "./config"
+import { GOOGLE_CLIENT_ID, JWT_PASSWORD, MONGO_URI } from "./config"
 import { userMiddleware } from "./middleware"
 import crypto from "crypto"
 import cors from "cors"
-
+import { OAuth2Client } from "google-auth-library"
 function generateShareId() {
   return crypto.randomBytes(8).toString("hex")
 }
@@ -61,7 +61,74 @@ mongoose
 const signupSchema = z.object({
   username: z.string().min(3, "Username is short"),
   password: z.string().min(6, "Password is short"),
+  email: z.string().email(),
 })
+
+const client = new OAuth2Client("52074276999-hivborjh21pho32erp3jg6l7es1f3qc5.apps.googleusercontent.com");
+
+app.post('/api/v1/google-signin', async (req: Request, res: Response) => {
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
+  
+  const { token } = req.body;
+  console.log('Extracted token:', token);
+
+  if (!token) {
+    console.error('No token provided in request body');
+    res.status(400).json({ error: 'Token is required' });
+    return;
+  }
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: "52074276999-hivborjh21pho32erp3jg6l7es1f3qc5.apps.googleusercontent.com",
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) {
+      res.status(400).json({ error: 'Invalid Token' });
+      return;
+    }
+
+    const { email, name, sub: googleId } = payload;
+    console.log('Google payload:', { email, name, googleId });
+
+    let user = await UserModel.findOne({ username: name });
+
+    if (!user) {
+      user = await UserModel.create({
+        username: name,
+        email,
+        googleId,
+      });
+      console.log('Created new user:', user);
+    } else {
+      console.log('Found existing user:', user);
+    }
+
+    if (!user || !user._id) {
+      console.error("User creation or fetch failed:", user);
+      res.status(500).json({ error: "User creation failed" });
+      return;
+    }
+
+    console.log('About to generate JWT token for user ID:', user._id);
+    console.log('JWT_PASSWORD:', JWT_PASSWORD);
+
+    const jwtToken = jwt.sign({ id: user._id }, JWT_PASSWORD, {
+      expiresIn: '24h',
+    });
+
+    console.log('Generated JWT token successfully');
+    console.log('Generated JWT token for user:', user._id);
+    res.json({ token: jwtToken });
+  } catch (err) {
+    console.error("Google Sign-In Failed:", err);
+    res.status(401).json({ error: 'Google Sign-In Failed' });
+  }
+});
+
 
 // Signup
 app.post("/api/v1/signup", async (req: Request, res: Response): Promise<void> => {
@@ -74,10 +141,10 @@ app.post("/api/v1/signup", async (req: Request, res: Response): Promise<void> =>
       return
     }
 
-    const { username, password } = result.data
+    const { username, password,email} = result.data
     const hashPass = await bcrypt.hash(password, 10)
 
-    const user = await UserModel.create({ username, password: hashPass })
+    const user = await UserModel.create({ username, password: hashPass,email })
     const token = jwt.sign({ id: user._id }, JWT_PASSWORD, { expiresIn: "24h" })
 
     console.log("User created successfully:", user._id)
@@ -115,6 +182,11 @@ app.post("/api/v1/signin", async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: "Internal server error" })
   }
 })
+
+// Signin Using Google
+// app.post("api/v1/google-signIn",async (req:Request,res:Response):Promise<voide> =>{
+
+// })
 
 // Add content
 app.post("/api/v1/content", userMiddleware, async (req: Request, res: Response): Promise<void> => {
@@ -274,6 +346,14 @@ app.get("/", (req: Request, res: Response) => {
     },
   })
 })
+
+// Test endpoint for debugging
+app.post('/api/v1/test', (req: Request, res: Response) => {
+  console.log('Test endpoint hit');
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
+  res.json({ message: 'Test endpoint working', body: req.body });
+});
 
 const PORT = process.env.PORT || 3000
 

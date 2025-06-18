@@ -2,10 +2,12 @@ import mongoose from "mongoose";
 import { MONGO_URI } from "./config";
 mongoose.connect(MONGO_URI)
 const userSchema = new mongoose.Schema({
-    username: { type: String, unique: true },
+    username: String,
+    email: { type: String, unique: true },
     password: String,
-    shareId: { type: String, unique: true, sparse: true },
-});
+    googleId: String,
+    shareId: String,
+  });
 
 const contentSchema = new mongoose.Schema({
     title:String,
