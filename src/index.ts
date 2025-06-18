@@ -297,14 +297,14 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
 app.get("/api/v1/brain/:shareId", async (req: Request, res: Response): Promise<void> => {
   try {
     const { shareId } = req.params
-    // console.log("shareID", shareId);
+    console.log("shareID", shareId);
     const user = await UserModel.findOne({ shareId })
 
     if (!user) {
       res.status(404).json({ message: "Invalid share link" })
       return
     }
-
+    console.log(user);
     const content = await ContentModel.find({ userId: user._id })
 
     res.json({
