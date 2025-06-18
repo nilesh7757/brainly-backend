@@ -12,6 +12,7 @@ import { userMiddleware } from "./middleware"
 import crypto from "crypto"
 import cors from "cors"
 import { OAuth2Client } from "google-auth-library"
+
 function generateShareId() {
   return crypto.randomBytes(8).toString("hex")
 }
@@ -24,8 +25,6 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true)
 
-    console.log("CORS request from origin:", origin)
-
     const allowedOrigins = [
       "https://second-brain-frontend-woad.vercel.app",
       "https://brainly-frontend-woad.vercel.app",
@@ -36,11 +35,9 @@ const corsOptions = {
 
     // Allow any Vercel domain
     if (origin.includes(".vercel.app") || allowedOrigins.includes(origin)) {
-      console.log("CORS allowed for origin:", origin)
       return callback(null, true)
     }
 
-    console.log("CORS blocked for origin:", origin)
     callback(new Error("Not allowed by CORS"))
   },
   credentials: true,
@@ -264,6 +261,14 @@ app.delete("/api/v1/content", userMiddleware, async (req: Request, res: Response
   }
 })
 
+// Test endpoint for debugging
+app.post('/api/v1/test', (req: Request, res: Response) => {
+  console.log('Test endpoint hit');
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
+  res.json({ message: 'Test endpoint working', body: req.body });
+});
+
 // Share endpoints
 app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -368,14 +373,6 @@ app.get("/", (req: Request, res: Response) => {
     },
   })
 })
-
-// Test endpoint for debugging
-app.post('/api/v1/test', (req: Request, res: Response) => {
-  console.log('Test endpoint hit');
-  console.log('Request body:', req.body);
-  console.log('Request headers:', req.headers);
-  res.json({ message: 'Test endpoint working', body: req.body });
-});
 
 const PORT = process.env.PORT || 3000
 

@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   });
 
 const contentSchema = new mongoose.Schema({
-    title:String,
+    title: String,
     link: String,
     type: String,
     tags: [String],
