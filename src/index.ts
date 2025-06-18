@@ -287,7 +287,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
     // @ts-ignore
     user.shareId = shareId
     await user.save()
-    res.json({ shareLink: `${process.env.VERCEL_URL || "http://localhost:3000"}/share/${shareId}` })
+    res.json({ shareLink: `${process.env.VERCEL_URL || "http://localhost:5173"}/share/${shareId}` })
   } catch (err) {
     console.error("Share error:", err)
     res.status(500).json({ message: "Failed to create share link" })
@@ -297,7 +297,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
 app.get("/api/v1/brain/:shareId", async (req: Request, res: Response): Promise<void> => {
   try {
     const { shareId } = req.params
-
+    // console.log("shareID", shareId);
     const user = await UserModel.findOne({ shareId })
 
     if (!user) {
