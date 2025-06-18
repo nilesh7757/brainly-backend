@@ -345,6 +345,7 @@ app.get("/", (req: Request, res: Response) => {
       signin: "/api/v1/signin",
       content: "/api/v1/content",
       share: "/api/v1/brain/share",
+      googleSignIn: "/api/v1/google-signin",
     },
   })
 })
