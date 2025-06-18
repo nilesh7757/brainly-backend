@@ -71,7 +71,7 @@ const signinSchema = z.object({
   username: z.string().min(3, "Username is short"),
   password: z.string().min(6, "Password is short"),
 })
-const client = new OAuth2Client("52074276999-hivborjh21pho32erp3jg6l7es1f3qc5.apps.googleusercontent.com");
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 app.post('/api/v1/google-signin', async (req: Request, res: Response) => {
   console.log('Request body:', req.body);
@@ -276,6 +276,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Respon
       res.status(404).json({ message: "User not found" })
       return
     }
+    console.log(FRONTEND_URL);
 
     // @ts-ignore
     if (user.shareId) {
