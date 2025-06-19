@@ -269,6 +269,23 @@ app.post('/api/v1/test', (req: Request, res: Response) => {
   res.json({ message: 'Test endpoint working', body: req.body });
 });
 
+// Get current user info
+app.get("/api/v1/user", userMiddleware, async (req: Request, res: Response)=> {
+  try {
+    // @ts-ignore
+    const userId = req.userId;
+    const user = await UserModel.findById(userId).select("username email");
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.json({ username: user.username, email: user.email });
+  } catch (err) {
+    console.error("Get user error:", err);
+    res.status(500).json({ message: "Failed to fetch user" });
+  }
+});
+
 // Share endpoints
 app.post("/api/v1/brain/share", userMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
